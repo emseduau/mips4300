@@ -83,8 +83,7 @@ void MipsMemory::populateText(vector<operatorOperand> inPairs, std::map<std::str
     for(int i = 0; i < textSize /2; i++){
         operatorOperand currentStrings = inPairs.at(i);
         mem_word opcode = currentStrings.first;
-        mem_word operandValue = 0;
-        operandValue = varsToAddys[currentStrings.second];
+        mem_word operandValue = varsToAddys[currentStrings.second];
         write(textNewAddress(), opcode);
         write(textNewAddress(), operandValue);
     }

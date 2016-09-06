@@ -1,5 +1,5 @@
 #include "memorySim.h"
-#include "accumFileParser.h"
+#include "fileParser.h"
 #include "stackSim.h"
 using namespace std;
 std::vector<reg_word> myStack;
@@ -10,10 +10,17 @@ reg_word accumulatorStack = 0;
 reg_word instructionRegisterStack = 0;
 mem_addr programCounterStack;
 struct MipsMemory mipStorageStack;
-struct AccumFileParser fileParserStack;
+struct FileParser fileParserStack;
 
 void fetchInstructionStack(){
     mipStorageStack.load(&instructionRegisterStack, programCounterStack);
+}
+
+void getStackOperands(){
+    upperElement = myStack.back();
+    myStack.pop_back();
+    lowerElement = myStack.back();
+    myStack.pop_back();
 }
 
 bool handleInstructionStack(){
@@ -33,18 +40,12 @@ bool handleInstructionStack(){
         mipStorageStack.write(operandA, toWrite);
         break;
     case ADD:
-        upperElement = myStack.back();
-        myStack.pop_back();
-        lowerElement = myStack.back();
-        myStack.pop_back();
+        getStackOperands();
         upperElement += lowerElement;
         myStack.push_back(upperElement);
         break;
     case MUL:
-        upperElement = myStack.back();
-        myStack.pop_back();
-        lowerElement = myStack.back();
-        myStack.pop_back();
+        getStackOperands();
         upperElement *= lowerElement;
         myStack.push_back(upperElement);
         break;
@@ -71,13 +72,12 @@ void stackRun(){
     bool userMode = true;
     while(userMode){
         fetchInstructionStack();
-        mipStorageStack.load(&instructionRegisterStack, programCounterStack);
         userMode = handleInstructionStack();
     }
     cout << "This value was left on top of the stack: " << myStack.back() << endl;
 }
 
-int main2(int argc, char *argv[]){
+int main(int argc, char *argv[]){
     if(argc != 2)
     {
         cout << "Improper usage: Please enter a single filename." << endl;

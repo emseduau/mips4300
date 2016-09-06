@@ -1,12 +1,13 @@
 #include "memorySim.h"
-#include "accumFileParser.h"
+#include "fileParser.h"
 #include "accumSim.h"
 using namespace std;
 reg_word accumulator = 0;
 reg_word instructionRegister = 0;
 mem_addr programCounter;
 struct MipsMemory mipStorage;
-struct AccumFileParser fileParser;
+struct FileParser fileParser;
+
 void fetchInstruction(){
     mipStorage.load(&instructionRegister, programCounter);
 }
@@ -55,7 +56,6 @@ void accumRun(){
     bool userMode = true;
     while(userMode){
         fetchInstruction();
-        //mipStorage.load(&instructionRegister, programCounter);
         userMode = handleInstruction();
     }
     cout << "This value was left in the accumulator: " << accumulator << endl;
