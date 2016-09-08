@@ -45,7 +45,7 @@ class MipsMemory{
         };
         MemSegment systemText, systemData, systemStac, kernelText, kernelData;
         mem_word textLocation, textSize, dataSize;
-        mem_word mipsRetreive(mem_addr targetAddress);
+        mem_word mipsRetrieve(mem_addr targetAddress);
         void mipsStore(mem_addr targetAddress, mem_word toStore);
         void expandData(long int extraBytes);
         void expandStack(long int extraBytes);

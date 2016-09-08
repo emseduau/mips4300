@@ -1,7 +1,8 @@
 #include "memorySim.h"
 using namespace std;
 
-void MipsMemory::MemSegment::allocateSection(mem_word storageSize, long int bottom, long int top){
+void MipsMemory::MemSegment::allocateSection(mem_word storageSize, long int bottom, long int top)
+{
     memStorage = (mem_word*)malloc(sizeof(mem_word) * storageSize);
     memSize = storageSize;
     memBottom = bottom;
@@ -9,11 +10,13 @@ void MipsMemory::MemSegment::allocateSection(mem_word storageSize, long int bott
     currentSize = 0;
 }
 
-void MipsMemory::MemSegment::deallocateSection(){
+void MipsMemory::MemSegment::deallocateSection()
+{
     free(memStorage);
 }
 
-void MipsMemory::initializeMips(mem_word dataCount, mem_word textCount){
+void MipsMemory::initializeMips(mem_word dataCount, mem_word textCount)
+{
     textLocation = TEXTOFFSET;
     textSize = textCount;
     dataSize = dataCount;
@@ -24,7 +27,8 @@ void MipsMemory::initializeMips(mem_word dataCount, mem_word textCount){
     kernelData.allocateSection(MemorySize, kDataOffset, kDataOffset + MemorySize);
 }
 
-void MipsMemory::tearDownMips(){
+void MipsMemory::tearDownMips()
+{
     systemText.deallocateSection();
     systemData.deallocateSection();
     systemStac.deallocateSection();
@@ -32,8 +36,9 @@ void MipsMemory::tearDownMips(){
     kernelData.deallocateSection();
 }
 
-//Takes a raw memory address and gets it's contents from the proper section.
-mem_word MipsMemory::mipsRetreive(mem_addr targetAddress){
+// Takes a raw memory address and gets its contents from the proper section.
+mem_word MipsMemory::mipsRetrieve(mem_addr targetAddress)
+{
     if(targetAddress >= TEXTBOT && targetAddress < TEXTTOP)
         return TEXTSECTION[targetAddress - TEXTBOT];
     else if(targetAddress >= DATABOT && targetAddress < DATATOP)
@@ -48,8 +53,9 @@ mem_word MipsMemory::mipsRetreive(mem_addr targetAddress){
         return INVALID_ADDRESS;
 }
 
-//Takes a raw memory address and data to store there, placing the data in the proper section.
-void MipsMemory::mipsStore(mem_addr targetAddress, mem_word toStore){
+// Takes a raw memory address and data to store there, placing the data in the proper section.
+void MipsMemory::mipsStore(mem_addr targetAddress, mem_word toStore)
+{
     if(targetAddress >= TEXTBOT && targetAddress < TEXTTOP)
         TEXTSECTION[targetAddress - TEXTBOT] = toStore;
     else if(targetAddress >= DATABOT && targetAddress < DATATOP)
@@ -64,7 +70,7 @@ void MipsMemory::mipsStore(mem_addr targetAddress, mem_word toStore){
         throw "Fatal Error: Simulated memory access violation.";
 }
 
-//Expands the data section of MIPS memory.
+// Expands the data section of MIPS memory.
 void MipsMemory::expandData(long int extraBytes)
 {
     long oldSize = DATATOP - DATABOT;
@@ -80,7 +86,7 @@ void MipsMemory::expandData(long int extraBytes)
         DATASECTION[i] = 0;
 }
 
-//Expands the stack section of MIPS memory.
+// Expands the stack section of MIPS memory.
 void MipsMemory::expandStack(long int extraBytes)
 {
     long oldSize = STACKTOP - STACKBOT;
@@ -102,8 +108,7 @@ void MipsMemory::expandStack(long int extraBytes)
     systemStac.memSize += extraBytes;
 }
 
-//Expands the kernel data section of MIPS memory.
-
+// Expands the kernel data section of MIPS memory.
 void MipsMemory::expandKData(long int extraBytes)
 {
     long oldSize = KDATATOP - KDATABOT;
@@ -119,9 +124,9 @@ void MipsMemory::expandKData(long int extraBytes)
 }
 
 
-//Retrieves an unallocated address in the data section of MIPS memory, expanding it if needed.
-
-mem_addr MipsMemory::dataNewAddress(){
+// Retrieves an unallocated address in the data section of MIPS memory, expanding it if needed.
+mem_addr MipsMemory::dataNewAddress()
+{
     mem_addr returnedAddress;
     if(systemData.currentSize == systemData.memSize)
         expandData(MemoryExpansionChunk);
@@ -130,9 +135,9 @@ mem_addr MipsMemory::dataNewAddress(){
     return returnedAddress;
 }
 
-//Retrieves an unallocated address in the text section of MIPS memory, raising an error if the section is full.
-
-mem_addr MipsMemory::textNewAddress(){
+// Retrieves an unallocated address in the text section of MIPS memory, raising an error if the section is full.
+mem_addr MipsMemory::textNewAddress()
+{
     mem_addr returnedAddress;
     if(systemText.currentSize == systemText.memSize)
         return INVALID_ADDRESS;
@@ -141,9 +146,9 @@ mem_addr MipsMemory::textNewAddress(){
     return returnedAddress;
 }
 
-//Retrieves an unallocated address in the stack section of MIPS memory, expanding it if needed.
-
-mem_addr MipsMemory::stackNewAddress(){
+// Retrieves an unallocated address in the stack section of MIPS memory, expanding it if needed.
+mem_addr MipsMemory::stackNewAddress()
+{
     mem_addr returnedAddress;
     if(systemStac.currentSize == systemStac.memSize)
         expandStack(MemoryExpansionChunk);
@@ -152,9 +157,9 @@ mem_addr MipsMemory::stackNewAddress(){
     return returnedAddress;
 }
 
-//Retrieves an unallocated address in the kernel text section of MIPS memory.
-
-mem_addr MipsMemory::kTextNewAddress(){
+// Retrieves an unallocated address in the kernel text section of MIPS memory.
+mem_addr MipsMemory::kTextNewAddress()
+{
     mem_addr returnedAddress;
     if(kernelText.currentSize == kernelText.memSize)
         return INVALID_ADDRESS;
@@ -163,8 +168,9 @@ mem_addr MipsMemory::kTextNewAddress(){
     return returnedAddress;
 }
 
-//Retrieves an unallocated address in the kernel text section of MIPS memory.
-mem_addr MipsMemory::kDataNewAddress(){
+// Retrieves an unallocated address in the kernel text section of MIPS memory.
+mem_addr MipsMemory::kDataNewAddress()
+{
     mem_addr returnedAddress;
     if(kernelData.currentSize == kernelData.memSize)
         return INVALID_ADDRESS;
@@ -173,25 +179,30 @@ mem_addr MipsMemory::kDataNewAddress(){
     return returnedAddress;
 }
 
-//Takes a register and address and reads a value from a MIPS memory address into the register.
-void MipsMemory::load(reg_word * regis, mem_addr targetAddress){
-    * regis = mipsRetreive(targetAddress);
+// Takes a register and address and reads a value from a MIPS memory address into the register.
+void MipsMemory::load(reg_word * regis, mem_addr targetAddress)
+{
+    * regis = mipsRetrieve(targetAddress);
 }
 
-//Takes an address and register and writes the value of the register into the address in MIPS memory.
-void MipsMemory::store(mem_addr targetAddress, reg_word * regis){
+// Takes an address and register and writes the value of the register into the address in MIPS memory.
+void MipsMemory::store(mem_addr targetAddress, reg_word * regis)
+{
     mipsStore(targetAddress, * regis);
 }
-//Reads the contents of an address in MIPS memory.
-mem_word MipsMemory::read(mem_addr targetAddress){
-    return mipsRetreive(targetAddress);
+// Reads the contents of an address in MIPS memory.
+mem_word MipsMemory::read(mem_addr targetAddress)
+{
+    return mipsRetrieve(targetAddress);
 }
-//Writes to an address in MIPS memory.
-void MipsMemory::write(mem_addr targetAddress, mem_word valueToWrite){
+// Writes to an address in MIPS memory.
+void MipsMemory::write(mem_addr targetAddress, mem_word valueToWrite)
+{
     mipsStore(targetAddress, valueToWrite);
 }
 
-mem_word MipsMemory::getTextLocation(){
+mem_word MipsMemory::getTextLocation()
+{
     return textLocation;
 }
 
