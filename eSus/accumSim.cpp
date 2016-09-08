@@ -5,11 +5,11 @@ using namespace std;
 reg_word accumulator = 0;
 reg_word instructionRegister = 0;
 mem_addr programCounter;
-struct MipsMemory mipStorage;
-struct FileParser fileParser;
+struct MipsMemory mipStorageAccum;
+struct FileParser fileParserAccum;
 
 void fetchInstruction(){
-    mipStorage.load(&instructionRegister, programCounter);
+    mipStorageAccum.load(&instructionRegister, programCounter);
 }
 
 bool handleInstruction(){
@@ -18,20 +18,20 @@ bool handleInstruction(){
     //cout << endl << "OPCODE value IS: " << instructionRegister  << endl;
     //cout << endl << "OPERAND value IS: " << mipStorage.read(mipStorage.read(programCounter + 1))  << endl;
     reg_word opCode = instructionRegister;
-    reg_word operandA = mipStorage.read(programCounter + 1);
+    reg_word operandA = mipStorageAccum.read(programCounter + 1);
     switch(opCode)
     {
     case LOAD:
-        mipStorage.load(&accumulator, operandA);
+        mipStorageAccum.load(&accumulator, operandA);
         break;
     case STO:
-        mipStorage.store(operandA, &accumulator);
+        mipStorageAccum.store(operandA, &accumulator);
         break;
     case MUL:
-        accumulator *= mipStorage.read(operandA);
+        accumulator *= mipStorageAccum.read(operandA);
         break;
     case ADD:
-        accumulator += mipStorage.read(operandA);
+        accumulator += mipStorageAccum.read(operandA);
         break;
     case END:
         user_mode = false;
@@ -43,13 +43,40 @@ bool handleInstruction(){
     return user_mode;
 }
 
-void loadInProgram(char * inputFilename){
+void loadInAccumProgram(char * inputFilename){
     char const * harg = inputFilename;
-    fileParser.loadFile(harg);
-    vector <idValue> dataEntries = fileParser.idValuePairs;
-    vector <operatorOperand> textEntries = fileParser.operatorOperandPairs;
-    mipStorage.initializeMips(dataEntries, textEntries);
-    programCounter = mipStorage.textLocation;
+    fileParserAccum.loadFile(harg);
+    vector <idValue> dataEntries = fileParserAccum.getIdValuePairs();
+    vector <operatorOperand> textEntries = fileParserAccum.getOperatorOperandPairs();
+    mipStorageAccum.initializeMips(dataEntries.size(), textEntries.size() * 2);
+    fillMemory(dataEntries, textEntries);
+    programCounter = mipStorageAccum.getTextLocation();
+}
+void fillMemory(std::vector <idValue> dataEntries, std::vector <operatorOperand> textEntries){
+    std::map<std::string, mem_word> relationSet = populateData(dataEntries);
+    populateText(textEntries, relationSet);
+}
+
+std::map<std::string, mem_word> populateData(vector <idValue> dataPairs){
+    mem_word dataSize = dataPairs.size();
+    std::map<std::string, mem_word> relationSet;
+    for(int i = 0; i < dataSize; i++){
+        idValue extractedRelation = dataPairs.at(i);
+        mem_addr dataLocation = mipStorageAccum.dataNewAddress();
+        mipStorageAccum.write(dataLocation, extractedRelation.second);
+        relationSet[extractedRelation.first] = dataLocation;
+    }
+    return relationSet;
+}
+
+void populateText(vector<operatorOperand> inPairs, std::map<std::string, mem_word> varsToAddys){
+    for(int i = 0, pairSize = inPairs.size(); i < pairSize; i++){
+        operatorOperand currentStrings = inPairs.at(i);
+        mem_word opcode = currentStrings.first;
+        mem_word operandValue = varsToAddys[currentStrings.second];
+        mipStorageAccum.write(mipStorageAccum.textNewAddress(), opcode);
+        mipStorageAccum.write(mipStorageAccum.textNewAddress(), operandValue);
+    }
 }
 
 void accumRun(){
@@ -67,9 +94,9 @@ int main(int argc, char *argv[]){
         return 1;
     }
     else{
-        loadInProgram(argv[1]);
+        loadInAccumProgram(argv[1]);
         accumRun();
-        mipStorage.tearDownMips();
+        mipStorageAccum.tearDownMips();
         return 0;
     }
 }

@@ -1,8 +1,19 @@
 #include  "fileParser.h"
 using namespace std;
+static const map<operationName, reg_word> operatorValueTable = {
+                                              {STO_STRING,  STO},
+                                              {LOAD_STRING, LOAD},
+                                              {POP_STRING,  POP},
+                                              {PUSH_STRING, PUSH},
+                                              {MUL_STRING,  MUL},
+                                              {SUB_STRING,  SUB},
+                                              {ADD_STRING,  ADD},
+                                              {END_STRING,  END}};
 const std::string comment = "#";
 const std::string dataLabel = ".data";
 const std::string textLabel = ".text";
+
+
 void FileParser::getSectionLine(std::string section, std::string sectionEntry){
     if (section == dataLabel){
         dataLines.push_back(sectionEntry);
@@ -37,10 +48,10 @@ void FileParser::loadData(){
     getSectionLines(dataLabel, textLabel);
     for(size_t i = 0, loops = dataLines.size(); i < loops; i++){
         workingString = dataLines.at(i);
-        if(workingString.find(":") !=  std::string::npos){
+        if(workingString.find(labelValueDelimiter) !=  std::string::npos){
             mem_addr extractedValue;
-            std::string label = workingString.substr(0, workingString.find(":"));
-            value = workingString.substr(workingString.find(":") + 1, string::npos);
+            std::string label = workingString.substr(0, workingString.find(labelValueDelimiter));
+            value = workingString.substr(workingString.find(labelValueDelimiter) + 1, string::npos);
             std::stringstream convert(value);
             if( !(convert >> extractedValue))
                 extractedValue = 0;
@@ -57,11 +68,11 @@ void FileParser::loadText(){
     getSectionLines(textLabel, dataLabel);
     for(size_t i = 0, loops = textLines.size(); i < loops; i++){
         workingString = textLines.at(i);
-        if(workingString.find(":") !=  std::string::npos){
+        if(workingString.find(operatorOperandDelimiter) !=  std::string::npos){
             operandString = "";
-            opCode = workingString.substr(0, workingString.find(":"));
+            opCode = workingString.substr(0, workingString.find(operatorOperandDelimiter));
             if (opCode !=   "END")
-                operandString = workingString.substr(workingString.find(":") + 1, string::npos);
+                operandString = workingString.substr(workingString.find(operatorOperandDelimiter) + 1, string::npos);
             operatorOperand linePair = make_pair(toOperator(opCode), operandString);
             operatorOperandPairs.push_back(linePair);
         }
@@ -101,21 +112,16 @@ void FileParser::loadFile(const char * inputFilename){
 }
 // Utility function: Converts an ascii operator to it's encoded value;
 reg_word FileParser::toOperator(std::string opString){
-    reg_word output = 0;
-    if(opString == "LOAD")
-        output = LOAD;
-    else if(opString == "STO")
-        output = STO;
-    else if(opString == "MUL")
-        output = MUL;
-    else if(opString == "ADD")
-        output = ADD;
-    else if(opString == "END")
-        output = END;
-    else if(opString == "PUSH")
-        output = PUSH;
-    else if(opString == "POP")
-        output = POP;
-    return output;
+    const auto result = operatorValueTable.find(opString);
+    if (result == operatorValueTable.end()){
+        return -1;
+    }
+    return result->second;
+}
+std::vector <idValue> FileParser::getIdValuePairs(){
+    return idValuePairs;
 }
 
+std::vector <operatorOperand> FileParser::getOperatorOperandPairs(){
+    return operatorOperandPairs;
+}

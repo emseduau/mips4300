@@ -1,37 +1,39 @@
 #include "memorySim.h"
 using namespace std;
-void MemSegment::allocateSection(mem_word storageSize, long int bottom, long int top){
-    memStorage = new mem_word[storageSize];
+
+void MipsMemory::MemSegment::allocateSection(mem_word storageSize, long int bottom, long int top){
+    memStorage = (mem_word*)malloc(sizeof(mem_word) * storageSize);
     memSize = storageSize;
     memBottom = bottom;
     memTop = top;
     currentSize = 0;
 }
-void MipsMemory::initializeMips(vector <idValue> dataEntries, vector <operatorOperand> textEntries){
-    textLocation = textOffset;
-    textSize = (2 * textEntries.size());
-    dataSize = dataEntries.size();
-    systemText.allocateSection(textSize, textOffset, textOffset + textSize);
+
+void MipsMemory::MemSegment::deallocateSection(){
+    free(memStorage);
+}
+
+void MipsMemory::initializeMips(mem_word dataCount, mem_word textCount){
+    textLocation = TEXTOFFSET;
+    textSize = textCount;
+    dataSize = dataCount;
+    systemText.allocateSection(textSize, TEXTOFFSET, TEXTOFFSET + textSize);
     systemData.allocateSection(dataSize, dataOffset, dataOffset + dataSize);
     systemStac.allocateSection(MemorySize, stackOffset - MemorySize, stackOffset);
     kernelText.allocateSection(MemorySize, kTextOffset, kTextOffset + MemorySize);
     kernelData.allocateSection(MemorySize, kDataOffset, kDataOffset + MemorySize);
-    std::map<std::string, mem_word> variablesToMemory = populateData(dataEntries);
-    populateText(textEntries, variablesToMemory);
 }
 
 void MipsMemory::tearDownMips(){
-    delete[] systemText.memStorage;
-    delete[] systemData.memStorage;
-    delete[] systemStac.memStorage;
-    delete[] kernelText.memStorage;
-    delete[] kernelData.memStorage;
+    systemText.deallocateSection();
+    systemData.deallocateSection();
+    systemStac.deallocateSection();
+    kernelText.deallocateSection();
+    kernelData.deallocateSection();
 }
 
 //Takes a raw memory address and gets it's contents from the proper section.
-
-mem_word MipsMemory::mipsRetreive(mem_addr targetAddress)
-{
+mem_word MipsMemory::mipsRetreive(mem_addr targetAddress){
     if(targetAddress >= TEXTBOT && targetAddress < TEXTTOP)
         return TEXTSECTION[targetAddress - TEXTBOT];
     else if(targetAddress >= DATABOT && targetAddress < DATATOP)
@@ -47,9 +49,7 @@ mem_word MipsMemory::mipsRetreive(mem_addr targetAddress)
 }
 
 //Takes a raw memory address and data to store there, placing the data in the proper section.
-
-void MipsMemory::mipsStore(mem_addr targetAddress, mem_word toStore)
-{
+void MipsMemory::mipsStore(mem_addr targetAddress, mem_word toStore){
     if(targetAddress >= TEXTBOT && targetAddress < TEXTTOP)
         TEXTSECTION[targetAddress - TEXTBOT] = toStore;
     else if(targetAddress >= DATABOT && targetAddress < DATATOP)
@@ -64,33 +64,7 @@ void MipsMemory::mipsStore(mem_addr targetAddress, mem_word toStore)
         throw "Fatal Error: Simulated memory access violation.";
 }
 
-//Populates the  section of MIPS memory with data loaded from file.
-
-std::map<std::string, mem_word> MipsMemory::populateData(vector <idValue> dataPairs){
-    std::map<std::string, mem_word> relationSet;
-    for(int i = 0; i < dataSize; i++){
-        idValue extractedRelation = dataPairs.at(i);
-        mem_addr dataLocation = dataNewAddress();
-        write(dataLocation, extractedRelation.second);
-        relationSet[extractedRelation.first] = dataLocation;
-    }
-    return relationSet;
-}
-
-//Populates the text section of MIPS memory with data loaded from file.
-
-void MipsMemory::populateText(vector<operatorOperand> inPairs, std::map<std::string, mem_word> varsToAddys){
-    for(int i = 0; i < textSize /2; i++){
-        operatorOperand currentStrings = inPairs.at(i);
-        mem_word opcode = currentStrings.first;
-        mem_word operandValue = varsToAddys[currentStrings.second];
-        write(textNewAddress(), opcode);
-        write(textNewAddress(), operandValue);
-    }
-}
-
 //Expands the data section of MIPS memory.
-
 void MipsMemory::expandData(long int extraBytes)
 {
     long oldSize = DATATOP - DATABOT;
@@ -107,7 +81,6 @@ void MipsMemory::expandData(long int extraBytes)
 }
 
 //Expands the stack section of MIPS memory.
-
 void MipsMemory::expandStack(long int extraBytes)
 {
     long oldSize = STACKTOP - STACKBOT;
@@ -117,12 +90,13 @@ void MipsMemory::expandStack(long int extraBytes)
 
     if(STACKBOT - extraBytes < DATATOP)
         throw "Fatal Error: Ran out of memory in expand stack.";
+
     newSegment = (mem_word *) malloc(newSize);
     pointerOld = oldSize - 1;
     pointerNew = newSize - 1;
     for(; pointerOld >= 0; ) newSegment[pointerNew--] = STACKSECTION[pointerOld--];
     for(; pointerNew >= 0; ) newSegment[pointerNew--] = 0;
-    delete [] STACKSECTION;
+    systemStac.deallocateSection();   //delete [] STACKSECTION;
     STACKSECTION = newSegment;
     STACKBOT -= (newSize - oldSize);
     systemStac.memSize += extraBytes;
@@ -190,7 +164,6 @@ mem_addr MipsMemory::kTextNewAddress(){
 }
 
 //Retrieves an unallocated address in the kernel text section of MIPS memory.
-
 mem_addr MipsMemory::kDataNewAddress(){
     mem_addr returnedAddress;
     if(kernelData.currentSize == kernelData.memSize)
@@ -198,15 +171,6 @@ mem_addr MipsMemory::kDataNewAddress(){
     returnedAddress = kernelData.memBottom + kernelData.currentSize;
     kernelData.currentSize++;
     return returnedAddress;
-}
-//Reads the contents of an address in MIPS memory.
-mem_word MipsMemory::read(mem_addr targetAddress){
-    return mipsRetreive(targetAddress);
-}
-
-//Writes to an address in MIPS memory.
-void MipsMemory::write(mem_addr targetAddress, mem_word valueToWrite){
-    mipsStore(targetAddress, valueToWrite);
 }
 
 //Takes a register and address and reads a value from a MIPS memory address into the register.
@@ -218,3 +182,16 @@ void MipsMemory::load(reg_word * regis, mem_addr targetAddress){
 void MipsMemory::store(mem_addr targetAddress, reg_word * regis){
     mipsStore(targetAddress, * regis);
 }
+//Reads the contents of an address in MIPS memory.
+mem_word MipsMemory::read(mem_addr targetAddress){
+    return mipsRetreive(targetAddress);
+}
+//Writes to an address in MIPS memory.
+void MipsMemory::write(mem_addr targetAddress, mem_word valueToWrite){
+    mipsStore(targetAddress, valueToWrite);
+}
+
+mem_word MipsMemory::getTextLocation(){
+    return textLocation;
+}
+

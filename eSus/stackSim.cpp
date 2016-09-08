@@ -25,8 +25,6 @@ void getStackOperands(){
 
 bool handleInstructionStack(){
     bool user_mode = true;
-    //cout << endl << "OPCODE value IS: " << instructionRegisterStack  << endl;
-    //cout << endl << "OPERAND value IS: " << mipStorageStack.read(mipStorageStack.read(programCounterStack + 1))  << endl;
     reg_word opCode = instructionRegisterStack;
     reg_word operandA = mipStorageStack.read(programCounterStack + 1);
     switch(opCode)
@@ -62,10 +60,38 @@ bool handleInstructionStack(){
 void loadInStackProgram(char * inputFilename){
     char const * harg = inputFilename;
     fileParserStack.loadFile(harg);
-    vector <idValue> dataEntries = fileParserStack.idValuePairs;
-    vector <operatorOperand> textEntries = fileParserStack.operatorOperandPairs;
-    mipStorageStack.initializeMips(dataEntries, textEntries);
-    programCounterStack = mipStorageStack.textLocation;
+    vector <idValue> dataEntries = fileParserStack.getIdValuePairs(); //idValuePairs();
+    vector <operatorOperand> textEntries = fileParserStack.getOperatorOperandPairs();
+    mipStorageStack.initializeMips(dataEntries.size(), textEntries.size() * 2);
+    fillMemory(dataEntries, textEntries);
+    programCounterStack = mipStorageStack.getTextLocation();
+}
+
+void fillMemory(std::vector <idValue> dataEntries, std::vector <operatorOperand> textEntries){
+    std::map<std::string, mem_word> relationSet = populateData(dataEntries);
+    populateText(textEntries, relationSet);
+}
+
+std::map<std::string, mem_word> populateData(vector <idValue> dataPairs){
+    mem_word dataSize = dataPairs.size();
+    std::map<std::string, mem_word> relationSet;
+    for(int i = 0; i < dataSize; i++){
+        idValue extractedRelation = dataPairs.at(i);
+        mem_addr dataLocation = mipStorageStack.dataNewAddress();
+        mipStorageStack.write(dataLocation, extractedRelation.second);
+        relationSet[extractedRelation.first] = dataLocation;
+    }
+    return relationSet;
+}
+
+void populateText(vector<operatorOperand> inPairs, std::map<std::string, mem_word> varsToAddys){
+    for(int i = 0, pairSize = inPairs.size(); i < pairSize; i++){
+        operatorOperand currentStrings = inPairs.at(i);
+        mem_word opcode = currentStrings.first;
+        mem_word operandValue = varsToAddys[currentStrings.second];
+        mipStorageStack.write(mipStorageStack.textNewAddress(), opcode);
+        mipStorageStack.write(mipStorageStack.textNewAddress(), operandValue);
+    }
 }
 
 void stackRun(){
