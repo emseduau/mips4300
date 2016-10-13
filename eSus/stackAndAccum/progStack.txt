@@ -1,0 +1,21 @@
+#
+# Code to evaluate a quadratic
+#
+.text
+PUSH:X  # (X)
+PUSH:X  # (X)->(X)
+MUL:    # (X^2)
+PUSH:A  # (A)->(X^2)
+MUL:    # (A*X^2)
+PUSH:X  # (X)->(A*X**2)
+PUSH:B  # (B)->(X)->(A*X**2) 
+MUL:    # (B*X)->(A*X**2)
+PUSH:C  # (C)->(B*X)->(A*X**2)
+ADD:    # (B*X + C)->(A*X**2)
+ADD:    # (A*X**2 + B*X + C)
+END:
+.data
+X:3
+A:7
+B:5
+C:4

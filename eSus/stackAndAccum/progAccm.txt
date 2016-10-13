@@ -1,0 +1,19 @@
+#
+# Code to evaluate a quadratic
+#
+.text
+LOAD:X  # X
+MUL:X   # X**2
+MUL:A   # 
+STO:T
+LOAD:X
+MUL:B
+ADD:T
+ADD:C
+END:
+.data
+X:3
+A:7
+B:5
+C:4
+T:0
