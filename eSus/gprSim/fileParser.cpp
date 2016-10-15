@@ -2,47 +2,47 @@
 using namespace std;
 //Maps strings to their OPcode value.
 const std::map<operationName, operatorAndType> FileParser::operatorValueTable =
-    {
-        {SUBI_STRING,    operatorAndType(SUBI, SUBI_TYPE)},
-        {LIINST_STRING,  operatorAndType(LIINST, LIINST_TYPE)},
-        {LBINST_STRING,  operatorAndType(LBINST,LBINST_TYPE)},
-        {LAINST_STRING,  operatorAndType(LAINST,LAINST_TYPE)},
-        {BNE_STRING,     operatorAndType(BNE,BNE_TYPE)},
-        {BGE_STRING,     operatorAndType(BGE,BGE_TYPE)},
-        {BEQZ_STRING,    operatorAndType(BEQZ,BEQZ_TYPE)},
-        {BINST_STRING,   operatorAndType(BINST,BINST_TYPE)},
-        {ADDI_STRING,    operatorAndType(ADDI,ADDI_TYPE)},
-        {STO_STRING,     operatorAndType(STO,STO_TYPE)},
-        {LOAD_STRING,    operatorAndType(LOAD,LOAD_TYPE)},
-        {POP_STRING,     operatorAndType(POP,POP_TYPE)},
-        {PUSH_STRING,    operatorAndType(PUSH,PUSH_TYPE)},
-        {MUL_STRING,     operatorAndType(MUL,MUL_TYPE)},
-        {SUB_STRING,     operatorAndType(SUB,SUB_TYPE)},
-        {ADD_STRING,     operatorAndType(ADD,ADD_TYPE)},
-        {END_STRING,     operatorAndType(END,END_TYPE)},
-        {SYSCALL_STRING, operatorAndType(SYSCALL,SYSCALL_TYPE)}
-    };
+{
+    {SUBI_STRING,    operatorAndType(SUBI, SUBI_TYPE)},
+    {LIINST_STRING,  operatorAndType(LIINST, LIINST_TYPE)},
+    {LBINST_STRING,  operatorAndType(LBINST,LBINST_TYPE)},
+    {LAINST_STRING,  operatorAndType(LAINST,LAINST_TYPE)},
+    {BNE_STRING,     operatorAndType(BNE,BNE_TYPE)},
+    {BGE_STRING,     operatorAndType(BGE,BGE_TYPE)},
+    {BEQZ_STRING,    operatorAndType(BEQZ,BEQZ_TYPE)},
+    {BINST_STRING,   operatorAndType(BINST,BINST_TYPE)},
+    {ADDI_STRING,    operatorAndType(ADDI,ADDI_TYPE)},
+    {STO_STRING,     operatorAndType(STO,STO_TYPE)},
+    {LOAD_STRING,    operatorAndType(LOAD,LOAD_TYPE)},
+    {POP_STRING,     operatorAndType(POP,POP_TYPE)},
+    {PUSH_STRING,    operatorAndType(PUSH,PUSH_TYPE)},
+    {MUL_STRING,     operatorAndType(MUL,MUL_TYPE)},
+    {SUB_STRING,     operatorAndType(SUB,SUB_TYPE)},
+    {ADD_STRING,     operatorAndType(ADD,ADD_TYPE)},
+    {END_STRING,     operatorAndType(END,END_TYPE)},
+    {SYSCALL_STRING, operatorAndType(SYSCALL,SYSCALL_TYPE)}
+};
 const std::map<reg_word, opType> FileParser::operatorTypeTable =
-    {
-        {SUBI, SUBI_TYPE},
-        {LIINST, LIINST_TYPE},
-        {LBINST,LBINST_TYPE},
-        {LAINST,LAINST_TYPE},
-        {BNE,BNE_TYPE},
-        {BGE,BGE_TYPE},
-        {BEQZ,BEQZ_TYPE},
-        {BINST,BINST_TYPE},
-        {ADDI,ADDI_TYPE},
-        {STO,STO_TYPE},
-        {LOAD,LOAD_TYPE},
-        {POP,POP_TYPE},
-        {PUSH,PUSH_TYPE},
-        {MUL,MUL_TYPE},
-        {SUB,SUB_TYPE},
-        {ADD,ADD_TYPE},
-        {END,END_TYPE},
-        {SYSCALL,SYSCALL_TYPE}
-    };
+{
+    {SUBI, SUBI_TYPE},
+    {LIINST, LIINST_TYPE},
+    {LBINST,LBINST_TYPE},
+    {LAINST,LAINST_TYPE},
+    {BNE,BNE_TYPE},
+    {BGE,BGE_TYPE},
+    {BEQZ,BEQZ_TYPE},
+    {BINST,BINST_TYPE},
+    {ADDI,ADDI_TYPE},
+    {STO,STO_TYPE},
+    {LOAD,LOAD_TYPE},
+    {POP,POP_TYPE},
+    {PUSH,PUSH_TYPE},
+    {MUL,MUL_TYPE},
+    {SUB,SUB_TYPE},
+    {ADD,ADD_TYPE},
+    {END,END_TYPE},
+    {SYSCALL,SYSCALL_TYPE}
+};
 
 
 
@@ -131,7 +131,8 @@ void FileParser::loadText()
     {
         operatorStart = 0;
         workingString = textLines.at(i);
-        if(workingString.find(textLabelDelimiter) !=  std::string::npos){
+        if(workingString.find(textLabelDelimiter) !=  std::string::npos)
+        {
             labelString = workingString.substr(0, workingString.find(textLabelDelimiter));
             operatorStart = workingString.find(textLabelDelimiter) + 1;
             jumplocValue jumpPair = make_pair(labelString, currentLabelOffset);
@@ -146,7 +147,7 @@ void FileParser::loadText()
                 operandString = workingString.substr(workingString.find(operatorOperandDelimiter) + 1, string::npos);
             operatorOperand linePair = make_pair(toOperator(opCode), operandString);
             operatorOperandPairs.push_back(linePair);
-        currentLabelOffset += 1;
+            currentLabelOffset += 1;
         }
     }
 }
@@ -192,7 +193,8 @@ void FileParser::loadFile(const char * inputFilename)
     loadText();
 }
 
-opType FileParser::getType(reg_word currentOperation){
+opType FileParser::getType(reg_word currentOperation)
+{
     const auto result = operatorTypeTable.find(currentOperation);
     if (result == operatorTypeTable.end())
     {
@@ -221,6 +223,8 @@ std::vector <operatorOperand> FileParser::getOperatorOperandPairs()
 {
     return operatorOperandPairs;
 }
-std::vector <jumplocValue> FileParser::getJumpPairs(){
+std::vector <jumplocValue> FileParser::getJumpPairs()
+{
     return jumplocValuePairs;
 }
+

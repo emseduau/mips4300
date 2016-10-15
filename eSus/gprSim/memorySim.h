@@ -2,7 +2,6 @@
 #define MEMORYSIM_H_INCLUDED
 #include <vector>
 #include <algorithm>
-#include <sstream>
 #include "mipsDataTypes.h"
 #define TEXTSECTION (systemText.memStorage)
 #define TEXTBOT systemText.memBottom
@@ -29,43 +28,38 @@
 #define INVALID_ADDRESS 0
 #define TRUE  1
 #define FALSE 0
-typedef int32_t register_number;
-typedef std::pair<std::string, mem_word> idValue;
-typedef std::pair<reg_word, std::string> operatorOperand;
-class MipsMemory{
-    private:
-        struct MemSegment{
-            mem_word * memStorage;
-            long int memSize, memBottom, memTop, currentSize;
-            void allocateSection(mem_word storageSize, long int bottom, long int top);
-            void deallocateSection();
-        };
-        MemSegment systemText, systemData, systemStac, kernelText, kernelData;
-        mem_word textLocation, textSize, dataSize;
-        mem_word mipsRetrieve(mem_addr targetAddress);
-        void mipsStore(mem_addr targetAddress, mem_word toStore);
-        void expandData(long int extraBytes);
-        void expandStack(long int extraBytes);
-        void expandKData(long int extraBytes);
-        reg_word toOperator(std::string opString);
-    public:
-        mem_addr textNewAddress();
-        mem_addr stackNewAddress();
-        mem_addr kTextNewAddress();
-        mem_addr kDataNewAddress();
-        mem_addr dataNewAddress();
-        mem_word getTextLocation();
-        mem_word getDataLocation();
-        mem_word getDataCurrent();
-
-
-        void initializeMips(mem_word dataCount, mem_word textCount);
-        void tearDownMips();
-        void load(reg_word * regis, mem_addr targetAddress);
-        void store(mem_addr targetAddress, reg_word * regis);
-        mem_word read(mem_addr targetAddress);
-        void write(mem_addr targetAddress, mem_word valueToWrite);
-    //void fetchInstruction(reg_word instRegister);
-
+class MipsMemory
+{
+private:
+    struct MemSegment
+    {
+        mem_word * memStorage;
+        long int memSize, memBottom, memTop, currentSize;
+        void allocateSection(mem_word storageSize, long int bottom, long int top);
+        void deallocateSection();
+    };
+    MemSegment systemText, systemData, systemStac, kernelText, kernelData;
+    mem_word textLocation, textSize, dataSize;
+    mem_word mipsRetrieve(mem_addr targetAddress);
+    void mipsStore(mem_addr targetAddress, mem_word toStore);
+    void expandData(long int extraBytes);
+    void expandStack(long int extraBytes);
+    void expandKData(long int extraBytes);
+    reg_word toOperator(std::string opString);
+public:
+    mem_addr textNewAddress();
+    mem_addr stackNewAddress();
+    mem_addr kTextNewAddress();
+    mem_addr kDataNewAddress();
+    mem_addr dataNewAddress();
+    mem_word getTextLocation();
+    mem_word getDataLocation();
+    mem_word getDataCurrent();
+    void initializeMips(mem_word dataCount, mem_word textCount);
+    void tearDownMips();
+    void load(reg_word * regis, mem_addr targetAddress);
+    void store(mem_addr targetAddress, reg_word * regis);
+    mem_word read(mem_addr targetAddress);
+    void write(mem_addr targetAddress, mem_word valueToWrite);
 };
 #endif

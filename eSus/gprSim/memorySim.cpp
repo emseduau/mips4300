@@ -219,7 +219,3 @@ mem_word MipsMemory::getDataCurrent()
 {
     return systemData.currentSize;
 }
-
-
-
-

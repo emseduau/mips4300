@@ -23,7 +23,8 @@ typedef std::pair<textHandle, mem_word> jumplocValue;
 typedef std::pair<reg_word, opType> operatorAndType;
 typedef std::pair<reg_word, std::string> operatorOperand;
 
-class FileParser{
+class FileParser
+{
     static const std::map<reg_word, opType> operatorTypeTable;
     static const std::map<operationName, operatorAndType> operatorValueTable;
     static  std::string  const comment;
@@ -49,7 +50,5 @@ public:
     std::vector <operatorOperand> getOperatorOperandPairs();
     std::vector <jumplocValue> getJumpPairs();
     opType getType(reg_word currentOperation);
-    //return idValuePairs;
-
 };
 #endif
